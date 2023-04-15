@@ -7,49 +7,17 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "F76DCF12-B3FA-4B8B-AA23-7EBDC416202D"
+            uuid = "091A6036-7F3A-4907-BD7B-E33DCCF221D1"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SDLTestDemo/VideoPlayer/VideoPlayer.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "289"
-            endingLineNumber = "289"
-            landmarkName = "VideoPlayer::initAudioInfo()"
+            startingLineNumber = "455"
+            endingLineNumber = "455"
+            landmarkName = "VideoPlayer::decodeAudio()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "F76DCF12-B3FA-4B8B-AA23-7EBDC416202D - fa6a3866f5012bcd"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "VideoPlayer::initAudioInfo()"
-                  moduleName = "SDLTestDemo"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/yindongbo/SDLPlayerDemo/SDLTestDemo/SDLTestDemo/VideoPlayer/VideoPlayer.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "342"
-                  endingLineNumber = "342"
-                  offsetFromSymbolStart = "76">
-               </Location>
-               <Location
-                  uuid = "F76DCF12-B3FA-4B8B-AA23-7EBDC416202D - fa6a3866f5012bcd"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "VideoPlayer::initAudioInfo()"
-                  moduleName = "SDLTestDemo"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/yindongbo/SDLPlayerDemo/SDLTestDemo/SDLTestDemo/VideoPlayer/VideoPlayer.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "342"
-                  endingLineNumber = "342"
-                  offsetFromSymbolStart = "96">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

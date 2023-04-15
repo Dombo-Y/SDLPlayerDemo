@@ -40,6 +40,7 @@
 		D120270829E708D900886141 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D120270529E708D900886141 /* libSDL2.a */; };
 		D120270A29E70DC900886141 /* sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = D120270929E70DC900886141 /* sound.wav */; };
 		D1B154A729EA97B5006A5D9D /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B154A629EA97B5006A5D9D /* CoreFoundation.framework */; };
+		D1B154B729EACC73006A5D9D /* OpenGLView20.m in Sources */ = {isa = PBXBuildFile; fileRef = D1B154B529EACC72006A5D9D /* OpenGLView20.m */; };
 		D1EE6EAD29E86F1900B6A6C5 /* VideoPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */; };
 		D1EE6EB029E871BD00B6A6C5 /* Condmutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */; };
 		D1EE6EB229E8776500B6A6C5 /* MyHeartWillGoOn.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D1EE6EB129E8776500B6A6C5 /* MyHeartWillGoOn.mp4 */; };
@@ -195,9 +196,6 @@
 		D120260B29E6F00A00886141 /* libswresample.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libswresample.a; sourceTree = "<group>"; };
 		D120260C29E6F00A00886141 /* libswscale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libswscale.a; sourceTree = "<group>"; };
 		D120261F29E6F0A300886141 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
-		D120263029E6F46200886141 /* x264_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x264_config.h; sourceTree = "<group>"; };
-		D120263129E6F46200886141 /* x264.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x264.h; sourceTree = "<group>"; };
-		D120263329E6F46200886141 /* libx264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libx264.a; sourceTree = "<group>"; };
 		D120263F29E6F52500886141 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		D12026A229E7057C00886141 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		D12026A429E7059000886141 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -292,6 +290,9 @@
 		D120270529E708D900886141 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libSDL2.a; sourceTree = "<group>"; };
 		D120270929E70DC900886141 /* sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = sound.wav; sourceTree = "<group>"; };
 		D1B154A629EA97B5006A5D9D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		D1B154B329EACBED006A5D9D /* PlayerC_interface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayerC_interface.h; sourceTree = "<group>"; };
+		D1B154B529EACC72006A5D9D /* OpenGLView20.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLView20.m; sourceTree = "<group>"; };
+		D1B154B629EACC72006A5D9D /* OpenGLView20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLView20.h; sourceTree = "<group>"; };
 		D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoPlayer.cpp; sourceTree = "<group>"; };
 		D1EE6EAC29E86F1900B6A6C5 /* VideoPlayer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VideoPlayer.hpp; sourceTree = "<group>"; };
 		D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Condmutex.cpp; sourceTree = "<group>"; };
@@ -353,6 +354,7 @@
 		D12023EB29E6EB6000886141 /* SDLTestDemo */ = {
 			isa = PBXGroup;
 			children = (
+				D1B154B429EACC72006A5D9D /* OpenGLES */,
 				D12026AE29E708D900886141 /* SDL2 */,
 				D120258129E6F00900886141 /* FFmpeg */,
 				D1EE6EAA29E86F0500B6A6C5 /* VideoPlayer */,
@@ -368,7 +370,6 @@
 				D120270929E70DC900886141 /* sound.wav */,
 				D12023F229E6EB6000886141 /* ViewController.h */,
 				D12023F329E6EB6000886141 /* ViewController.mm */,
-				D120262E29E6F46200886141 /* X264 */,
 			);
 			path = SDLTestDemo;
 			sourceTree = "<group>";
@@ -604,32 +605,6 @@
 			path = lib;
 			sourceTree = "<group>";
 		};
-		D120262E29E6F46200886141 /* X264 */ = {
-			isa = PBXGroup;
-			children = (
-				D120262F29E6F46200886141 /* include */,
-				D120263229E6F46200886141 /* lib */,
-			);
-			path = X264;
-			sourceTree = "<group>";
-		};
-		D120262F29E6F46200886141 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				D120263029E6F46200886141 /* x264_config.h */,
-				D120263129E6F46200886141 /* x264.h */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
-		D120263229E6F46200886141 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				D120263329E6F46200886141 /* libx264.a */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
 		D12026AE29E708D900886141 /* SDL2 */ = {
 			isa = PBXGroup;
 			children = (
@@ -738,12 +713,22 @@
 			path = lib;
 			sourceTree = "<group>";
 		};
+		D1B154B429EACC72006A5D9D /* OpenGLES */ = {
+			isa = PBXGroup;
+			children = (
+				D1B154B529EACC72006A5D9D /* OpenGLView20.m */,
+				D1B154B629EACC72006A5D9D /* OpenGLView20.h */,
+			);
+			path = OpenGLES;
+			sourceTree = "<group>";
+		};
 		D1EE6EAA29E86F0500B6A6C5 /* VideoPlayer */ = {
 			isa = PBXGroup;
 			children = (
 				D1EE6EB129E8776500B6A6C5 /* MyHeartWillGoOn.mp4 */,
 				D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */,
 				D1EE6EAC29E86F1900B6A6C5 /* VideoPlayer.hpp */,
+				D1B154B329EACBED006A5D9D /* PlayerC_interface.h */,
 				D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */,
 				D1EE6EAF29E871BD00B6A6C5 /* Condmutex.hpp */,
 			);
@@ -830,6 +815,7 @@
 				D12023FF29E6EB6700886141 /* main.m in Sources */,
 				D12023F129E6EB6000886141 /* SceneDelegate.m in Sources */,
 				D1EE6EB029E871BD00B6A6C5 /* Condmutex.cpp in Sources */,
+				D1B154B729EACC73006A5D9D /* OpenGLView20.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

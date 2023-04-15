@@ -8,6 +8,8 @@
 #include "VideoPlayer.hpp"
 #include <thread>
 
+#include "PlayerC_interface.h"
+
 #define AUDIO_MAX_PKT_SIZE 1000
 #define VIDEO_MAX_PKT_SIZE 500
 
@@ -38,15 +40,20 @@
 
 #define BREAK(func) CODE(func,break;)
 
+int  audioBuffIndex = 0;
+
 #pragma mark - 构造析构
-VideoPlayer::VideoPlayer(){}
+VideoPlayer::VideoPlayer() {
+    avformat_network_init();// 初始化网络库以及网络加密相关协议
+}
+
 VideoPlayer::~VideoPlayer(){
     stop();//窗口关闭停掉子线程
     SDL_Quit();//若不该为Stopped状态，线程还在后台执行未停止
 }
 
 #pragma mark - State
-void VideoPlayer:: play(){
+void VideoPlayer:: play() {
     if(_state == VideoPlayer::Playing) return;
     if(_state == Stopped){
         std::thread([this](){
@@ -66,7 +73,7 @@ void VideoPlayer::stop(){
     if(_state == VideoPlayer::Stopped) return;
     _state = Stopped;//改变状态
     playerfree(); //释放资源
-//    stateChanged(self);//通知外界
+    stateChanged(self);//通知外界
 }
 
 bool VideoPlayer::isPlaying(){
@@ -105,18 +112,18 @@ bool VideoPlayer::isMute(){
 }
 
 #pragma mark - 公有方法
-void VideoPlayer::setFilename(const char *filename){
-//    const char *file = filename.toStdString().c_str();
+void VideoPlayer::setFilename(const char *filename) {
     printf("%s\n",filename);
     memcpy(_filename,filename,strlen(filename) + 1);
     cout << _filename << endl;
 }
-int VideoPlayer::getDuration(){
+
+int VideoPlayer::getDuration() {
     return _fmtCtx ? round(_fmtCtx->duration * av_q2d(AV_TIME_BASE_Q)):0; //ffmpeg时间转现实时间，取整
 }
 
 #pragma mark - 公有方法
-void VideoPlayer::readFile(){
+void VideoPlayer::readFile() {
     int ret = 0;
     ret = avformat_open_input(&_fmtCtx,_filename,nullptr,nullptr);
     END(avformat_open_input);
@@ -132,19 +139,14 @@ void VideoPlayer::readFile(){
         return;
     }
  
-//      initFinished(self); //初始化完毕，发送信号
-    //改变状态 要在读取线程的前面，否则导致解码循环提前退出，解码循环读取到时Stop状态直接break，再也不进入 无法解码 一直黑屏或没有声音，
-    //也可能SDL音频子线程一开始在Stopped，就退出了
+    initFinished(self); //初始化完毕，发送信号
     setState(VideoPlayer::Playing);
- 
-    SDL_PauseAudio(0); //音频解码子线程开始工作:开始播放pcm
+    SDL_PauseAudio(0);
  
     std::thread([this](){ //视频解码子线程开始工作:开启新的线程去解码视频数据
         decodeVideo();
     }).detach();
-
-//        从输入文件中读取数据
-    //确保每次读取到的pkt都是新的，在while循环外面，则每次加入list中的pkt都不会将一模一样，不为最后一次读取到的pkt，为全新的pkt，调用了拷贝构造函数
+ 
     AVPacket pkt;
     while(_state != Stopped){
         //处理seek操作
@@ -178,19 +180,18 @@ void VideoPlayer::readFile(){
             }
         }
 
-        int vSize = static_cast<int>(_vPktList.size());//_vPktList.size();
-        int aSize = static_cast<int>(_aPktList.size());//_aPktList.size()
-        //不要将文件中的压缩数据一次性读取到内存中，控制下大小
+        int vSize = static_cast<int>(_vPktList.size());
+        int aSize = static_cast<int>(_aPktList.size());
         if(vSize >= VIDEO_MAX_PKT_SIZE || aSize >= AUDIO_MAX_PKT_SIZE){
-            SDL_Delay(10);
+            SDL_Delay(10); //不要将文件中的压缩数据一次性读取到内存中，控制下大小
             continue;
         }
-        ret = av_read_frame(_fmtCtx,&pkt);
+        ret = av_read_frame(_fmtCtx,&pkt); // 很重要的这个～～～从码流中读取音视频流（是如何进行区分的呢）
         if(ret == 0){
             if(pkt.stream_index == _aStream->index){//读取到的是音频数据
                 addAudioPkt(pkt);
             }else if(pkt.stream_index == _vStream->index){//读取到的是视频数据
-//                addVideoPkt(pkt);
+                addVideoPkt(pkt);
             }else{//如果不是音频、视频流，直接释放，防止内存泄露
                 av_packet_unref(&pkt);
             }
@@ -219,13 +220,15 @@ void VideoPlayer::readFile(){
 
 
 void VideoPlayer::setState(State state){
+    cout << "setState() ~~~~~~" << endl;
     if(state == _state) return;
     _state = state;
     //通知播放器进行UI改变
-//    stateChanged(self);
+    stateChanged(self);
 }
 
 void VideoPlayer::playerfree(){
+    cout << "playerfree() ~~~~~~" << endl;
     while (_hasAudio && !_aCanFree);
     while (_hasVideo && !_vCanFree);
     while (!_fmtCtxCanFree);
@@ -237,36 +240,26 @@ void VideoPlayer::playerfree(){
     freeVideo();
 }
 void VideoPlayer::fataError(){
-    //为了配置stop调用成功
+    cout << "fataError() ~~~~~~" << endl;
     _state = Playing;
     stop();
     setState(Stopped);
-//    playFailed(self);
+    playFailed(self);
     playerfree();
 }
 
 #pragma mark - init Decoder
-//初始化解码器:根据传入的AVMediaType获取解码信息，要想外面获取到解码上下文，传入外边的解码上下文的地址，同理传入stream的地址,里面赋值后
-//外部能获取到，C语言中的指针改变传入的地址中的值
 int VideoPlayer::initDecoder(AVCodecContext **decodeCtx,AVStream **stream,AVMediaType type){
-    //根据TYPE寻找最合适的流信息
-    //返回值是流索引
     int ret = av_find_best_stream(_fmtCtx,type,-1,-1,nullptr,0);
     RET(av_find_best_stream);
-    //检验流
     int streamIdx = ret;
-    //cout  << "文件的流的数量" << _fmtCtx->nb_streams << endl;
     *stream = _fmtCtx->streams[streamIdx];
     if(!*stream){
         cout << "stream is empty" << endl;
         return -1;
     }
     AVCodec *decoder = nullptr;
-//    if((*stream)->codecpar->codec_id == AV_CODEC_ID_AAC){ //指定三方库解码
-//        decoder = avcodec_find_decoder_by_name("libfdk_aac");
-//    }else{
-        decoder = avcodec_find_decoder((*stream)->codecpar->codec_id);
-//    }
+    decoder = avcodec_find_decoder((*stream)->codecpar->codec_id);
     if(!decoder){
         cout << "decoder not found" <<(*stream)->codecpar->codec_id << endl;
         return -1;
@@ -287,7 +280,6 @@ int VideoPlayer::initDecoder(AVCodecContext **decodeCtx,AVStream **stream,AVMedi
 int VideoPlayer::initAudioInfo(){
     int ret = initDecoder(&_aDecodeCtx,&_aStream,AVMEDIA_TYPE_AUDIO);
     RET(initDecoder);
- 
     ret = initSwr();
     RET(initSwr);
     ret = initSDL();
@@ -330,7 +322,6 @@ int VideoPlayer::initSwr(){
     }
     ret = av_samples_alloc(_aSwrOutFrame->data,_aSwrOutFrame->linesize,_aSwrOutSpec.chs,4096,_aSwrOutSpec.sampleFmt,1);
     RET(av_samples_alloc);
-
     return 0;
 }
 int VideoPlayer::initSDL(){
@@ -356,13 +347,14 @@ void VideoPlayer::sdlAudioCallbackFunc(void *userdata, Uint8 *stream, int len){
 void VideoPlayer::addAudioPkt(AVPacket &pkt){
     _aMutex.lock();
     _aPktList.push_back(pkt);
+    audioBuffIndex ++;
     _aMutex.signal();
     _aMutex.unlock();
+    cout << " audioBuffIndex ===" << audioBuffIndex << endl;
 }
 
 void VideoPlayer::clearAudioPktList(){
     _aMutex.lock();
-    //取出list，前面加*
     for(AVPacket &pkt:_aPktList){
         av_packet_unref(&pkt);
     }
@@ -428,7 +420,7 @@ int VideoPlayer::decodeAudio(){
     AVPacket &pkt = _aPktList.front();
     if(pkt.pts != AV_NOPTS_VALUE){ //音频包应该在多少秒播放
       _aTime = av_q2d(_aStream->time_base) * pkt.pts;
-//        timeChanged(self);//通知外界:播放时间发生了改变
+        timeChanged(self);//通知外界:播放时间发生了改变
     }
     //如果是视频，不能在这个位置判断(不能提前释放pkt,不然会导致B帧、P帧解码失败，画面撕裂)
    
@@ -445,7 +437,6 @@ int VideoPlayer::decodeAudio(){
  
     int ret = avcodec_send_packet(_aDecodeCtx, &pkt);
     av_packet_unref(&pkt);
-//    cout << "释放pkt后pkt地址" << &pkt << endl;
     _aPktList.pop_front();
     _aMutex.unlock();
     RET(avcodec_send_packet);
@@ -454,13 +445,11 @@ int VideoPlayer::decodeAudio(){
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
         return 0;
     } else RET(avcodec_receive_frame);
-    //查看输入文件格式
 //    cout << "采样率:" << _aSwrInFrame->sample_rate << "声道数:" << _aSwrInFrame->channels << "采样格式:" << av_get_sample_fmt_name((AVSampleFormat)_aSwrInFrame->format) << endl;
     //重采样输出的样本数 向上取整  48000 1024 44100  outSamples
-    int outSamples = av_rescale_rnd(_aSwrOutSpec.sampleRate, _aSwrInFrame->nb_samples, _aSwrInSpec.sampleRate, AV_ROUND_UP);
-    cout << "outSamples ==== "<< outSamples << endl;
+    int64_t outSamples = av_rescale_rnd(_aSwrOutSpec.sampleRate, _aSwrInFrame->nb_samples, _aSwrInSpec.sampleRate, AV_ROUND_UP);
     // 重采样(返回值转换后的样本数量)_aSwrOutFrame->data必须初始化，否则重采样转化的pcm样本不知道放在那儿
-    ret = swr_convert(_aSwrCtx,_aSwrOutFrame->data, outSamples,(const uint8_t **) _aSwrInFrame->data, _aSwrInFrame->nb_samples);
+    ret = swr_convert(_aSwrCtx,_aSwrOutFrame->data, (int)outSamples,(const uint8_t **) _aSwrInFrame->data, _aSwrInFrame->nb_samples);
     RET(swr_convert);
     //ret为每一个声道的样本数 * 声道数 * 每一个样本的大小 = 重采样后的pcm的大小
     return  ret * _aSwrOutSpec.bytesPerSampleFrame;
@@ -558,7 +547,7 @@ void VideoPlayer::decodeVideo() {
                     _vSeekTime = -1;
                 }
             }
-            //OPENGL渲染
+            
             char *buf = (char *)malloc(_vSwsInFrame->width * _vSwsInFrame->height * 3 / 2);
             AVPicture *pict;
             int w, h;
@@ -580,12 +569,12 @@ void VideoPlayer::decodeVideo() {
                 //有可能点击停止的时候，正在循环里面，停止后sdl free掉了，就不会再从音频list中取出包，_aClock就不会增大，下面while就死循环了，一直出不来，所以加Playing判断
                 printf("vTime=%lf, aTime=%lf, vTime-aTime=%lf\n", _vTime, _aTime, _vTime - _aTime);
                 while(_vTime > _aTime && _state == Playing){//音视频同步
-
+//                    cout<< "音视频当然要同步啦～～～～～～～" << endl;
                 }
             }else{
                 //TODO 没有音频的情况
             }
-//            playerDoDraw(self,buf,_vSwsInFrame->width,_vSwsInFrame->height);
+            playerDoDraw(self,buf,_vSwsInFrame->width,_vSwsInFrame->height);
             //TODO ---- 啥时候释放 若立即释放 会崩溃 原因是渲染并没有那么快，OPENGL还没有渲染完毕，但是这块内存已经被free掉了
             
             //放到OPGLES glview中等待一帧渲染完毕后，再释放，此处不能释放
@@ -600,15 +589,10 @@ void VideoPlayer::decodeVideo() {
 
 
 #pragma mark 调用C函数
-int VideoPlayer::someMethod (void *objectiveCObject, void *aParameter)
-{
-    // To invoke an Objective-C method from C++, use
-    // the C trampoline function
-//    return playerDoSomethingWith(objectiveCObject, aParameter);
-    return 1;
+int VideoPlayer::someMethod (void *objectiveCObject, void *aParameter) {
+    return playerDoSomethingWith(objectiveCObject, aParameter);
 }
 
-void VideoPlayer::setSelf(void *aSelf)
-{
+void VideoPlayer::setSelf(void *aSelf) {
     self = aSelf;
 }
