@@ -39,6 +39,7 @@
 		D120270729E708D900886141 /* SDL_config.h.in in Resources */ = {isa = PBXBuildFile; fileRef = D12026F729E708D900886141 /* SDL_config.h.in */; };
 		D120270829E708D900886141 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D120270529E708D900886141 /* libSDL2.a */; };
 		D120270A29E70DC900886141 /* sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = D120270929E70DC900886141 /* sound.wav */; };
+		D1B154A729EA97B5006A5D9D /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B154A629EA97B5006A5D9D /* CoreFoundation.framework */; };
 		D1EE6EAD29E86F1900B6A6C5 /* VideoPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */; };
 		D1EE6EB029E871BD00B6A6C5 /* Condmutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */; };
 		D1EE6EB229E8776500B6A6C5 /* MyHeartWillGoOn.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D1EE6EB129E8776500B6A6C5 /* MyHeartWillGoOn.mp4 */; };
@@ -290,6 +291,7 @@
 		D120270329E708D900886141 /* SDL_opengles2_gl2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDL_opengles2_gl2.h; sourceTree = "<group>"; };
 		D120270529E708D900886141 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libSDL2.a; sourceTree = "<group>"; };
 		D120270929E70DC900886141 /* sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = sound.wav; sourceTree = "<group>"; };
+		D1B154A629EA97B5006A5D9D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoPlayer.cpp; sourceTree = "<group>"; };
 		D1EE6EAC29E86F1900B6A6C5 /* VideoPlayer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VideoPlayer.hpp; sourceTree = "<group>"; };
 		D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Condmutex.cpp; sourceTree = "<group>"; };
@@ -302,6 +304,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1B154A729EA97B5006A5D9D /* CoreFoundation.framework in Frameworks */,
 				D12026AD29E7061500886141 /* CoreHaptics.framework in Frameworks */,
 				D12026AB29E705C000886141 /* CoreAudio.framework in Frameworks */,
 				D12026A929E705AB00886141 /* UIKit.framework in Frameworks */,
@@ -350,18 +353,18 @@
 		D12023EB29E6EB6000886141 /* SDLTestDemo */ = {
 			isa = PBXGroup;
 			children = (
+				D12026AE29E708D900886141 /* SDL2 */,
+				D120258129E6F00900886141 /* FFmpeg */,
 				D1EE6EAA29E86F0500B6A6C5 /* VideoPlayer */,
 				D12023EC29E6EB6000886141 /* AppDelegate.h */,
 				D12023ED29E6EB6000886141 /* AppDelegate.m */,
 				D12023F829E6EB6700886141 /* Assets.xcassets */,
-				D120258129E6F00900886141 /* FFmpeg */,
 				D12023FD29E6EB6700886141 /* Info.plist */,
 				D12023FA29E6EB6700886141 /* LaunchScreen.storyboard */,
 				D12023FE29E6EB6700886141 /* main.m */,
 				D12023F529E6EB6000886141 /* Main.storyboard */,
 				D12023EF29E6EB6000886141 /* SceneDelegate.h */,
 				D12023F029E6EB6000886141 /* SceneDelegate.m */,
-				D12026AE29E708D900886141 /* SDL2 */,
 				D120270929E70DC900886141 /* sound.wav */,
 				D12023F229E6EB6000886141 /* ViewController.h */,
 				D12023F329E6EB6000886141 /* ViewController.mm */,
@@ -373,6 +376,7 @@
 		D12024DD29E6EE3900886141 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D1B154A629EA97B5006A5D9D /* CoreFoundation.framework */,
 				D12026AC29E7061500886141 /* CoreHaptics.framework */,
 				D12026AA29E705C000886141 /* CoreAudio.framework */,
 				D12026A829E705AB00886141 /* UIKit.framework */,
@@ -991,6 +995,7 @@
 					"$(PROJECT_DIR)/SDLTestDemo/FFmpeg/lib",
 					"$(PROJECT_DIR)/SDLTestDemo/X264/lib",
 					"$(PROJECT_DIR)/SDLTestDemo/SDL2/lib",
+					"$(PROJECT_DIR)/SDLTestDemo/FDK-AAC/lib",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Dombo.SDLTestDemo;
@@ -1028,6 +1033,7 @@
 					"$(PROJECT_DIR)/SDLTestDemo/FFmpeg/lib",
 					"$(PROJECT_DIR)/SDLTestDemo/X264/lib",
 					"$(PROJECT_DIR)/SDLTestDemo/SDL2/lib",
+					"$(PROJECT_DIR)/SDLTestDemo/FDK-AAC/lib",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Dombo.SDLTestDemo;

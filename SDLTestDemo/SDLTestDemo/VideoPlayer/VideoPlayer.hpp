@@ -157,7 +157,10 @@ private:
     void playerfree(); //释放资源
     void freeAudio();
     void freeVideo();
-    void fataError(); 
+    void fataError();
+    
+    
+    int stream_component_open(int stream_index);
 };
 
 #endif /* VideoPlayer_hpp */
