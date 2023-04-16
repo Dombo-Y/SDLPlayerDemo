@@ -52,6 +52,8 @@ VideoPlayer::~VideoPlayer(){
     SDL_Quit();//若不该为Stopped状态，线程还在后台执行未停止
 }
 
+#define MEN_ITEM_SIZE (20 * 1024 * 102)
+
 #pragma mark - State
 void VideoPlayer:: play() {
     if(_state == VideoPlayer::Playing) return;
@@ -125,28 +127,59 @@ int VideoPlayer::getDuration() {
 #pragma mark - 公有方法
 void VideoPlayer::readFile() {
     int ret = 0;
-    ret = avformat_open_input(&_fmtCtx,_filename,nullptr,nullptr);
-    END(avformat_open_input);
-    ret = avformat_find_stream_info(_fmtCtx,nullptr);
-    END(avformat_find_stream_info);
+//    const char * str = "rtmp://58.200.131.2:1935/livetv/cctv1";
+    ret = avformat_open_input(&_fmtCtx,_filename,nullptr,nullptr); //获取AVFormatContext
+//    END(avformat_open_input);
+    ret = avformat_find_stream_info(_fmtCtx,nullptr); // 获取视频文件信息，不调用回出现什么问题
+    // avformat_find_stream_info 会带来很大延迟
+//    END(avformat_find_stream_info);
     av_dump_format(_fmtCtx,0,_filename,0);
     fflush(stderr);
+    
+    
+    for (int i = 0; i< _fmtCtx->nb_streams; i++) {
+        AVStream *in_stream = _fmtCtx->streams[i];
+        if (AVMEDIA_TYPE_AUDIO == in_stream->codecpar->codec_type) {
+            if (AV_SAMPLE_FMT_FLTP == in_stream -> codecpar ->format) {
+                
+            }else if (AV_SAMPLE_FMT_S16P == in_stream -> codecpar-> format) {
+                
+            } else if (AV_CODEC_ID_H264) {
+                
+            }else {
+                
+            }
+            printf("-------  video info :\n");
+            printf("fps:%lffps \n", av_q2d(in_stream->avg_frame_rate));
+            printf("width:%d   height:%d\n", in_stream->codecpar->width, in_stream->codecpar->height);
+            if (in_stream -> duration != AV_NOPTS_VALUE) {
+                int duration_video = (in_stream->duration) * av_q2d(in_stream->time_base);
+                printf("video duration: %02d:%02d:%02d\n",
+                       duration_video / 3600,
+                       (duration_video % 3600)/60 ,
+                       (duration_video % 60));
+            }
+        }
+    }
+     
+    
     _hasAudio = initAudioInfo() >= 0;
     _hasVideo = initVideoInfo() >= 0;
-    
+
     if(!_hasAudio && !_hasVideo) {
         fataError();
         return;
     }
- 
+
     initFinished(self); //初始化完毕，发送信号
     setState(VideoPlayer::Playing);
     SDL_PauseAudio(0);
- 
+
     std::thread([this](){ //视频解码子线程开始工作:开启新的线程去解码视频数据
         decodeVideo();
     }).detach();
- 
+
+//    AVPacket *pkt =  av_packet_alloc();
     AVPacket pkt;
     while(_state != Stopped){
         //处理seek操作
@@ -192,17 +225,16 @@ void VideoPlayer::readFile() {
                 addAudioPkt(pkt);
             }else if(pkt.stream_index == _vStream->index){//读取到的是视频数据
                 addVideoPkt(pkt);
-            }else{//如果不是音频、视频流，直接释放，防止内存泄露
+            }
+            else{//如果不是音频、视频流，直接释放，防止内存泄露
                 av_packet_unref(&pkt);
             }
         }else if(ret == AVERROR_EOF){//读到了文件尾部
             if(vSize == 0 && aSize == 0){
                 cout << "AVERROR_EOF读取到文件末尾了-------vSize=0--aSize=0--------" << endl;
-                //说明文件正常播放完毕
                 _fmtCtxCanFree = true;
                 break;
             }
-            //读取到文件尾部依然要在while循环中转圈圈，若break跳出循环，则无法seek往回读了
         }else{
             ERROR_BUF;
             cout << "av_read_frame error" << errbuf;
@@ -437,6 +469,7 @@ int VideoPlayer::decodeAudio(){
  
     int ret = avcodec_send_packet(_aDecodeCtx, &pkt);
     av_packet_unref(&pkt);
+//    av_packet_free(pkt);
     _aPktList.pop_front();
     _aMutex.unlock();
     RET(avcodec_send_packet);

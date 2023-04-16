@@ -6,47 +6,30 @@
 //
 
 #import "ViewController.h"
- 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//
-//#include "libavutil/opt.h"
-//#include "libavcodec/avcodec.h"
-//#include "libavformat/avformat.h"
-//#include "libswscale/swscale.h"
-//
-//#include "SDL.h"
-//#ifdef __cplusplus
-//};
-//#endif
-
 #import "OpenGLView20.h"
-
 #include "VideoPlayer.hpp"
 
 @interface ViewController () <
 UIGestureRecognizerDelegate
->
-{
+> {
     VideoPlayer *_player;
     OpenGLView20 *_myview;
 }
-@property(nonatomic,copy)NSString * path;
-
-@property(nonatomic,strong)UIButton *playBtn;
-@property(nonatomic,strong)UIButton *stopBtn;
-@property(nonatomic,strong)UIButton *muteBtn;
-@property(nonatomic,strong)UISlider *timeSlider;
-@property(nonatomic,strong)UISlider *volumnSlider;
-@property(nonatomic,strong)UILabel *volumnLabel;
-@property(nonatomic,strong)UITapGestureRecognizer *tapGesture;
-@property(nonatomic,strong)UITapGestureRecognizer *volumnTapGesture;
-@property(nonatomic,strong)UILabel *durationLabel;
-@property(nonatomic,strong)UILabel *label;
-@property(nonatomic,strong)UILabel *timeLabel;
-@property(nonatomic,strong)UIView *blackView;
-@property(nonatomic,strong)UIView *menuView;
+@property (nonatomic, strong) NSString * path;
+ 
+@property (nonatomic, strong) UIButton *playBtn;
+@property (nonatomic, strong) UIButton *stopBtn;
+@property (nonatomic, strong) UIButton *muteBtn;
+@property (nonatomic, strong) UISlider *timeSlider;
+@property (nonatomic, strong) UISlider *volumnSlider;
+@property (nonatomic, strong) UILabel *volumnLabel;
+@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
+@property (nonatomic, strong) UITapGestureRecognizer *volumnTapGesture;
+@property (nonatomic, strong) UILabel *durationLabel;
+@property (nonatomic, strong) UILabel *label;
+@property (nonatomic, strong) UILabel *timeLabel;
+@property (nonatomic, strong) UIView *blackView;
+@property (nonatomic, strong) UIView *menuView;
 @end
 
 @implementation ViewController
@@ -302,6 +285,7 @@ UIGestureRecognizerDelegate
     }
 //    NSLog(@"_sliderTouchDown当前滑块点击的位置:%lf",slider.value);
 }
+
 -(void)_sliderValueDidChanged:(UISlider *)slider{
     if(slider.tag == 100){//播放进度
         NSLog(@"当前视频滑块所处的位置:%lf",slider.value);
@@ -312,6 +296,7 @@ UIGestureRecognizerDelegate
         _player->setVolumn(lround(slider.value));
     }
 }
+
 #pragma mark 音视频播放音频时间变化 时间Label和进度条变化
 -(void)timeChanged{
     //音频播放时间设置滚动条和label
@@ -326,13 +311,9 @@ void timeChanged(void *hhObjectInstance){
 }
 #pragma mark 格式化时间 秒->hh:mm:ss
 -(NSString *)getTimeText:(int)value{
-    //format of hour
     NSString *str_hour = [NSString stringWithFormat:@"%02d",value/3600];
-    //format of minute
     NSString *str_minute = [NSString stringWithFormat:@"%02d",(value%3600)/60];
-    //format of second
     NSString *str_second = [NSString stringWithFormat:@"%02d",value%60];
-    //format of time
     NSString *format_time = [NSString stringWithFormat:@"%@:%@:%@",str_hour,str_minute,str_second];
     return format_time;
 }
