@@ -130,14 +130,11 @@ void VideoPlayer::readFile() {
     int ret = 0;
 //    const char * str = "rtmp://58.200.131.2:1935/livetv/cctv1";
     ret = avformat_open_input(&_fmtCtx,_filename,nullptr,nullptr); //获取AVFormatContext
-//    END(avformat_open_input);
     ret = avformat_find_stream_info(_fmtCtx,nullptr); // 获取视频文件信息，不调用回出现什么问题
     // avformat_find_stream_info 会带来很大延迟
-//    END(avformat_find_stream_info);
     av_dump_format(_fmtCtx,0,_filename,0);
     fflush(stderr);
-    
-    
+     
     for (int i = 0; i< _fmtCtx->nb_streams; i++) {
         AVStream *in_stream = _fmtCtx->streams[i];
         if (AVMEDIA_TYPE_AUDIO == in_stream->codecpar->codec_type) {
@@ -162,7 +159,6 @@ void VideoPlayer::readFile() {
             }
         }
     }
-     
     
     _hasAudio = initAudioInfo() >= 0;
     _hasVideo = initVideoInfo() >= 0;
@@ -182,7 +178,7 @@ void VideoPlayer::readFile() {
 
 //    AVPacket *pkt =  av_packet_alloc();
     AVPacket pkt;
-    while(_state != Stopped){
+    while(_state != Stopped) {
         //处理seek操作
         if(_seekTime >= 0){
             int streamIdx;
@@ -252,7 +248,7 @@ void VideoPlayer::readFile() {
 }
 
 
-void VideoPlayer::setState(State state){
+void VideoPlayer::setState(State state) {
     cout << "setState() ~~~~~~" << endl;
     if(state == _state) return;
     _state = state;
@@ -260,7 +256,7 @@ void VideoPlayer::setState(State state){
     stateChanged(self);
 }
 
-void VideoPlayer::playerfree(){
+void VideoPlayer::playerfree() {
     cout << "playerfree() ~~~~~~" << endl;
     while (_hasAudio && !_aCanFree);
     while (_hasVideo && !_vCanFree);
@@ -272,7 +268,8 @@ void VideoPlayer::playerfree(){
     freeAudio();
     freeVideo();
 }
-void VideoPlayer::fataError(){
+
+void VideoPlayer::fataError() {
     cout << "fataError() ~~~~~~" << endl;
     _state = Playing;
     stop();
@@ -282,7 +279,7 @@ void VideoPlayer::fataError(){
 }
 
 #pragma mark - init Decoder
-int VideoPlayer::initDecoder(AVCodecContext **decodeCtx,AVStream **stream,AVMediaType type){
+int VideoPlayer::initDecoder(AVCodecContext **decodeCtx,AVStream **stream,AVMediaType type) {
     int ret = av_find_best_stream(_fmtCtx,type,-1,-1,nullptr,0);
     RET(av_find_best_stream);
     int streamIdx = ret;
@@ -310,7 +307,7 @@ int VideoPlayer::initDecoder(AVCodecContext **decodeCtx,AVStream **stream,AVMedi
 }
 
 #pragma mark - 初始化 音频信息
-int VideoPlayer::initAudioInfo(){
+int VideoPlayer::initAudioInfo() {
     int ret = initDecoder(&_aDecodeCtx,&_aStream,AVMEDIA_TYPE_AUDIO);
     RET(initDecoder);
     ret = initSwr();
@@ -320,10 +317,11 @@ int VideoPlayer::initAudioInfo(){
 
     return 0;
 }
-int VideoPlayer::initSwr(){
+
+int VideoPlayer::initSwr() {
     _aSwrInSpec.sampleRate = _aDecodeCtx->sample_rate;
     _aSwrInSpec.sampleFmt = _aDecodeCtx->sample_fmt;
-    _aSwrInSpec.chLayout = _aDecodeCtx->channel_layout;
+    _aSwrInSpec.chLayout = static_cast<int>(_aDecodeCtx->channel_layout);
     _aSwrInSpec.chs = _aDecodeCtx->channels;
  
     _aSwrOutSpec.sampleRate = SAMPLE_RATE;
@@ -331,6 +329,7 @@ int VideoPlayer::initSwr(){
     _aSwrOutSpec.chLayout = AV_CH_LAYOUT_STEREO;
     _aSwrOutSpec.chs = av_get_channel_layout_nb_channels(_aSwrOutSpec.chLayout);
     _aSwrOutSpec.bytesPerSampleFrame = _aSwrOutSpec.chs * av_get_bytes_per_sample(_aSwrOutSpec.sampleFmt);
+    
     _aSwrCtx = swr_alloc_set_opts(nullptr,
                                   _aSwrOutSpec.chLayout,_aSwrOutSpec.sampleFmt,_aSwrOutSpec.sampleRate,
                                   _aSwrInSpec.chLayout, _aSwrInSpec.sampleFmt,_aSwrInSpec.sampleRate,
@@ -339,9 +338,9 @@ int VideoPlayer::initSwr(){
         cout << "swr_alloc_set_opts error" << endl;
         return -1;
     }
-    int ret = swr_init(_aSwrCtx);//初始化重采样上下文
+    int ret = swr_init(_aSwrCtx);
     RET(swr_init);
- 
+  
     _aSwrInFrame = av_frame_alloc();//初始化输入Frame
     if(!_aSwrInFrame){
         cout << "av_frame_alloc error" << endl;
@@ -353,11 +352,13 @@ int VideoPlayer::initSwr(){
         cout << "av_frame_alloc error" << endl;
         return -1;
     }
-    ret = av_samples_alloc(_aSwrOutFrame->data,_aSwrOutFrame->linesize,_aSwrOutSpec.chs,4096,_aSwrOutSpec.sampleFmt,1);
+    
+    ret = av_samples_alloc(_aSwrOutFrame->data,_aSwrOutFrame->linesize,_aSwrOutSpec.chs,1024,_aSwrOutSpec.sampleFmt,1);
     RET(av_samples_alloc);
     return 0;
 }
-int VideoPlayer::initSDL(){
+
+int VideoPlayer::initSDL() {
     SDL_SetMainReady();
     SDL_AudioSpec spec;
     spec.freq = _aSwrOutSpec.sampleRate;
@@ -372,12 +373,13 @@ int VideoPlayer::initSDL(){
     }
     return 0;
 }
-void VideoPlayer::sdlAudioCallbackFunc(void *userdata, Uint8 *stream, int len){
+
+void VideoPlayer::sdlAudioCallbackFunc(void *userdata, Uint8 *stream, int len) {
     VideoPlayer *player = (VideoPlayer *)userdata;
     player->sdlAudioCallback(stream,len);
 }
  
-void VideoPlayer::addAudioPkt(AVPacket &pkt){
+void VideoPlayer::addAudioPkt(AVPacket &pkt) {
     _aMutex.lock();
     _aPktList.push_back(pkt);
     audioBuffIndex ++;
@@ -386,7 +388,7 @@ void VideoPlayer::addAudioPkt(AVPacket &pkt){
     cout << " audioBuffIndex ===" << audioBuffIndex << endl;
 }
 
-void VideoPlayer::clearAudioPktList(){
+void VideoPlayer::clearAudioPktList() {
     _aMutex.lock();
     for(AVPacket &pkt:_aPktList){
         av_packet_unref(&pkt);
@@ -395,7 +397,7 @@ void VideoPlayer::clearAudioPktList(){
     _aMutex.unlock();
 }
 
-void VideoPlayer::freeAudio(){
+void VideoPlayer::freeAudio() {
     _aTime = 0;
     _aSwrOutIdx = 0;
     _aSwrOutSize = 0;
@@ -439,24 +441,25 @@ void VideoPlayer::sdlAudioCallback(Uint8 *stream, int len) {
         len -= fillLen; //移动偏移量
         stream += fillLen;
         _aSwrOutIdx += fillLen;
+        cout << "_aSwrOutIdx == " << _aSwrOutIdx <<endl;
     }
 }
+
 int VideoPlayer::decodeAudio(){
     _aMutex.lock();
-    //_aPktList中如果是空的，就进入等待，等待_aPktList中新加入解封装后的pkt发送信号signal通知到这儿，
-    //有可能解封装很快就都解完成了，后面都没有新的pkt，也不会发送信号了,就会一直在这儿等
     if(_aPktList.empty()){
         cout << "_aPktList为空" << _aPktList.size() << endl;
         _aMutex.unlock();
         return 0;
     }
+    
     AVPacket &pkt = _aPktList.front();
     if(pkt.pts != AV_NOPTS_VALUE){ //音频包应该在多少秒播放
       _aTime = av_q2d(_aStream->time_base) * pkt.pts;
         timeChanged(self);//通知外界:播放时间发生了改变
     }
+    
     //如果是视频，不能在这个位置判断(不能提前释放pkt,不然会导致B帧、P帧解码失败，画面撕裂)
-   
     if(_aSeekTime >= 0){
         if(_aTime < _aSeekTime){ //发现音频的时间是早于seekTime的，就丢弃，防止到seekTime的位置闪现
             av_packet_unref(&pkt); //释放pkt
@@ -478,10 +481,8 @@ int VideoPlayer::decodeAudio(){
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
         return 0;
     } else RET(avcodec_receive_frame);
-//    cout << "采样率:" << _aSwrInFrame->sample_rate << "声道数:" << _aSwrInFrame->channels << "采样格式:" << av_get_sample_fmt_name((AVSampleFormat)_aSwrInFrame->format) << endl;
-    //重采样输出的样本数 向上取整  48000 1024 44100  outSamples
+   
     int64_t outSamples = av_rescale_rnd(_aSwrOutSpec.sampleRate, _aSwrInFrame->nb_samples, _aSwrInSpec.sampleRate, AV_ROUND_UP);
-    // 重采样(返回值转换后的样本数量)_aSwrOutFrame->data必须初始化，否则重采样转化的pcm样本不知道放在那儿
     ret = swr_convert(_aSwrCtx,_aSwrOutFrame->data, (int)outSamples,(const uint8_t **) _aSwrInFrame->data, _aSwrInFrame->nb_samples);
     RET(swr_convert);
     //ret为每一个声道的样本数 * 声道数 * 每一个样本的大小 = 重采样后的pcm的大小
@@ -584,36 +585,37 @@ void VideoPlayer::decodeVideo() {
                 }
             }
             
-            char *buf = (char *)malloc(_vSwsInFrame->width * _vSwsInFrame->height * 3 / 2);
-            AVPicture *pict;
-            int w, h;
-            char *y, *u, *v;
-            pict = (AVPicture *)_vSwsInFrame;//这里的frame就是解码出来的AVFrame
-            w = _vSwsInFrame->width;
-            h = _vSwsInFrame->height;
-            y = buf;
-            u = y + w * h;
-            v = u + w * h / 4;
-            for (int i=0; i<h; i++)
-                memcpy(y + w * i, pict->data[0] + pict->linesize[0] * i, w);
-            for (int i=0; i<h/2; i++)
-                memcpy(u + w / 2 * i, pict->data[1] + pict->linesize[1] * i, w / 2);
-            for (int i=0; i<h/2; i++)
-                memcpy(v + w / 2 * i, pict->data[2] + pict->linesize[2] * i, w / 2);
-            if(_hasAudio){//有音频
-                //如果视频包多早解码出来，就要等待对应的音频时钟到达
-                //有可能点击停止的时候，正在循环里面，停止后sdl free掉了，就不会再从音频list中取出包，_aClock就不会增大，下面while就死循环了，一直出不来，所以加Playing判断
-                printf("vTime=%lf, aTime=%lf, vTime-aTime=%lf\n", _vTime, _aTime, _vTime - _aTime);
-                while(_vTime > _aTime && _state == Playing){//音视频同步
-//                    cout<< "音视频当然要同步啦～～～～～～～" << endl;
-                }
-            }else{
-                //TODO 没有音频的情况
-            }
-            playerDoDraw(self,buf,_vSwsInFrame->width,_vSwsInFrame->height);
+//            char *buf = (char *)malloc(_vSwsInFrame->width * _vSwsInFrame->height * 3 / 2);
+//            AVPicture *pict;
+//            int w, h;
+//            char *y, *u, *v;
+//            pict = (AVPicture *)_vSwsInFrame;//这里的frame就是解码出来的AVFrame
+//            w = _vSwsInFrame->width;
+//            h = _vSwsInFrame->height;
+//            y = buf;
+//            u = y + w * h;
+//            v = u + w * h / 4;
+//            for (int i=0; i<h; i++)
+//                memcpy(y + w * i, pict->data[0] + pict->linesize[0] * i, w);
+//            for (int i=0; i<h/2; i++)
+//                memcpy(u + w / 2 * i, pict->data[1] + pict->linesize[1] * i, w / 2);
+//            for (int i=0; i<h/2; i++)
+//                memcpy(v + w / 2 * i, pict->data[2] + pict->linesize[2] * i, w / 2);
+//            if(_hasAudio){//有音频
+//                //如果视频包多早解码出来，就要等待对应的音频时钟到达
+//                //有可能点击停止的时候，正在循环里面，停止后sdl free掉了，就不会再从音频list中取出包，_aClock就不会增大，下面while就死循环了，一直出不来，所以加Playing判断
+//                printf("vTime=%lf, aTime=%lf, vTime-aTime=%lf\n", _vTime, _aTime, _vTime - _aTime);
+//                while(_vTime > _aTime && _state == Playing){//音视频同步
+////                    cout<< "音视频当然要同步啦～～～～～～～" << endl;
+//                }
+//            }else{
+//                //TODO 没有音频的情况
+//            }
+//            playerDoDraw(self,buf,_vSwsInFrame->width,_vSwsInFrame->height);
             //TODO ---- 啥时候释放 若立即释放 会崩溃 原因是渲染并没有那么快，OPENGL还没有渲染完毕，但是这块内存已经被free掉了
             
             //放到OPGLES glview中等待一帧渲染完毕后，再释放，此处不能释放
+//            cout<< "buf ~~~ size :" << sizeof(buf) << endl;
 //            free(buf);
 //            cout << "渲染了一帧" << _vTime << "音频时间" << _aTime << endl;
             //子线程把这一块数据_vSwsOutFrame->data[0]直接发送到主线程，给widget里面的image里面的bits指针指向去绘制图片，主线程也会访问这一块内存数据，子线程也会访问，有可能子线程正往里面写着，主线程就拿去用了，会导致数据错乱，崩溃
