@@ -47,7 +47,7 @@ UIGestureRecognizerDelegate
         __strong typeof(weakSelf) strongSelf = weakSelf;
         _player->setSelf((__bridge void *)strongSelf);
         _player->setFilename(filename);
-        _player->readFile();
+        _player->play();
     });
     
     //渲染View
@@ -61,10 +61,9 @@ UIGestureRecognizerDelegate
     //播放/暂停按钮
     self.playBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     self.playBtn.frame = CGRectMake(2, 15, 40, 30);
-    self.playBtn.layer.cornerRadius = 10;
     [self.playBtn setTitle:@"播放" forState:UIControlStateNormal];
     [self.playBtn setTintColor:[UIColor whiteColor]];
-    [self.playBtn setBackgroundColor:[UIColor cyanColor]];
+    [self.playBtn setBackgroundColor:[UIColor redColor]];
     [self.playBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [self.playBtn addTarget:self action:@selector(playBtnClick:) forControlEvents:UIControlEventTouchUpInside];
     [self.menuView addSubview:self.playBtn];
@@ -72,36 +71,25 @@ UIGestureRecognizerDelegate
     //停止按钮
     self.stopBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     self.stopBtn.frame = CGRectMake(CGRectGetMaxX(self.playBtn.frame)+6, 15, 40, 30);
-    self.stopBtn.layer.cornerRadius = 10;
     [self.stopBtn setTitle:@"停止" forState:UIControlStateNormal];
     [self.stopBtn setTintColor:[UIColor whiteColor]];
-    [self.stopBtn setBackgroundColor:[UIColor cyanColor]];
+    [self.stopBtn setBackgroundColor:[UIColor redColor]];
     [self.stopBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [self.stopBtn addTarget:self action:@selector(stopBtnClick:) forControlEvents:UIControlEventTouchUpInside];
     [self.menuView addSubview:self.stopBtn];
     
     //播放进度条
-    /// 创建Slider 设置Frame
-    UISlider *timeSlider = [[UISlider alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_stopBtn.frame)+6, 15, self.view.frame.size.width - CGRectGetMaxX(self.stopBtn.frame)-10, 50)];
+    UISlider *timeSlider = [[UISlider alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_stopBtn.frame)+6, 15, self.view.frame.size.width - CGRectGetMaxX(self.stopBtn.frame)-10, 50)];  /// 创建Slider 设置Frame
     timeSlider.center = CGPointMake(timeSlider.center.x, self.playBtn.center.y);
     self.timeSlider = timeSlider;
-    /// 添加Slider
-    [self.menuView addSubview:timeSlider];
-    timeSlider.tag = 100;
-    /// 属性配置
-    // minimumValue  : 当值可以改变时，滑块可以滑动到最小位置的值，默认为0.0
+    [self.menuView addSubview:timeSlider]; /// 添加Slider
+    timeSlider.tag = 100;    /// 属性配置
     timeSlider.minimumValue = 0.0;
-    // maximumValue : 当值可以改变时，滑块可以滑动到最大位置的值，默认为1.0
     timeSlider.maximumValue = 99.0;
-    // 当前值，这个值是介于滑块的最大值和最小值之间的，如果没有设置边界值，默认为0-1；
     timeSlider.value = 0.0;
-    // continuous : 如果设置YES，在拖动滑块的任何时候，滑块的值都会改变。默认设置为YES
     [timeSlider setContinuous:YES];
-    // minimumTrackTintColor : 小于滑块当前值滑块条的颜色，默认为蓝色
     timeSlider.minimumTrackTintColor = [UIColor blueColor];
-    // maximumTrackTintColor: 大于滑块当前值滑块条的颜色，默认为白色
     timeSlider.maximumTrackTintColor = [UIColor grayColor];
-    // thumbTintColor : 当前滑块的颜色，默认为白色
     timeSlider.thumbTintColor = [UIColor cyanColor];
     /// 事件监听
     [timeSlider addTarget:self action:@selector(_sliderValueDidChanged:) forControlEvents:UIControlEventValueChanged];
@@ -111,9 +99,8 @@ UIGestureRecognizerDelegate
     _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(actionTapGesture:)];
     _tapGesture.delegate = self;
     [timeSlider addGestureRecognizer:_tapGesture];
-
-    //时间Label
-    self.timeLabel = [[UILabel alloc] init];
+ 
+    self.timeLabel = [[UILabel alloc] init];    //时间Label
     self.timeLabel.font = [UIFont fontWithName:@"PingFangSC-Regular" size:13];
     self.timeLabel.textColor = [UIColor blackColor];
     self.timeLabel.text = @"00:00:00";
@@ -125,9 +112,8 @@ UIGestureRecognizerDelegate
     CGFloat lbW = 58;
     CGFloat lbH = 34;
     self.timeLabel.frame = CGRectMake(lbX, lbY, lbW, lbH);
-    
-    //中间分割线/Label
-    self.label = [[UILabel alloc] init];
+     
+    self.label = [[UILabel alloc] init];    //中间分割线/Label
     self.label.font = [UIFont fontWithName:@"PingFangSC-Regular" size:13];
     self.label.textColor = [UIColor blackColor];
     self.label.text = @"/";
@@ -167,27 +153,17 @@ UIGestureRecognizerDelegate
     [self.menuView addSubview:self.muteBtn];
     
     //静音滑动条
-    /// 创建Slider 设置Frame
     UISlider *volumnSlider = [[UISlider alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_muteBtn.frame), CGRectGetMinY(self.durationLabel.frame), 100, 50)];
     volumnSlider.center = CGPointMake(volumnSlider.center.x, self.muteBtn.center.y);
     self.volumnSlider = volumnSlider;
-    /// 添加Slider
     [self.menuView addSubview:volumnSlider];
     volumnSlider.tag = 101;
-    /// 属性配置
-    // minimumValue  : 当值可以改变时，滑块可以滑动到最小位置的值，默认为0.0
     volumnSlider.minimumValue = VideoPlayer::Volumn::Min;
-    // maximumValue : 当值可以改变时，滑块可以滑动到最大位置的值，默认为1.0
     volumnSlider.maximumValue = VideoPlayer::Volumn::Max;
-    // 当前值，这个值是介于滑块的最大值和最小值之间的，如果没有设置边界值，默认为0-1；
     volumnSlider.value = volumnSlider.maximumValue/2;
-    // continuous : 如果设置YES，在拖动滑块的任何时候，滑块的值都会改变。默认设置为YES
     [volumnSlider setContinuous:YES];
-    // minimumTrackTintColor : 小于滑块当前值滑块条的颜色，默认为蓝色
     volumnSlider.minimumTrackTintColor = [UIColor blueColor];
-    // maximumTrackTintColor: 大于滑块当前值滑块条的颜色，默认为白色
     volumnSlider.maximumTrackTintColor = [UIColor grayColor];
-    // thumbTintColor : 当前滑块的颜色，默认为白色
     volumnSlider.thumbTintColor = [UIColor cyanColor];
     /// 事件监听
     [volumnSlider addTarget:self action:@selector(_sliderValueDidChanged:) forControlEvents:UIControlEventValueChanged];

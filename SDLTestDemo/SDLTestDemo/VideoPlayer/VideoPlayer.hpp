@@ -21,7 +21,8 @@ extern "C" {
 #include <libavutil/imgutils.h>
 #include <libswresample/swresample.h>//重采样
 #include <libswscale/swscale.h>//像素格式转换
-}
+
+} 
 
 class VideoPlayer {
 public:

@@ -1,0 +1,83 @@
+
+AVFormatContext *_fmtCtx = nullptr
+SwrContext *_aSwrCtx = nullptr; //音频重采样上下文
+    
+当fileName 传进来，会先调用avformat_open_int(&_fmtCtx, _fileName, nullptr, nullptr);初始化AVFormatContext，然后调用 avformat_find_stream_info(_fmtCtx, nullptr) 获取视频流中的一些相关信息，av_dump_format(_fmtCtx,0, _fileName,0) 打印出相关视频信息。
+通过 for 循环 遍历出 _fmtCtx->nb_streams中 包含的 AVStream, 通过AVStream-> codecpar ->format  来判断音视频类型。
+
+-=-=-=-=-=-音视频 操作相同 -=-=-=-===-=-=--==-===-=-=--==-===-=-=--==-=
+初始化音频 通过  av_find_best_stream(_fmtCtx, Audio, -1,-1, 0);获取最佳符合类型的流编号streamIdx ，
+通过_fmtCtx->stream[streamIdx] 调用 decoder = avcodec_find_decoder(*stream->codecpar->codec_id) 初始化找到符合的AVCodec，
+准备操作AVCodec，所以要初始化上下文avcodec_alloc_context3(decoder).
+调用avcodec_parameters_to_context(*decodecCtx,((*stream)->codecpar)) 将stream中的cadecpar赋值到decodecCtx中，打开AVCodec解码器 avcodec_open2(*decodecCtx,decoder,nullptr);
+==-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-=
+音频采样率设置：
+输入的sampleRate 采样率
+输入的sampleFmt 采样格式
+输入的chLayout 音频通道布局
+输入的chs  音频通道数量
+
+输出的 sampleRate
+输出的 sampleFmt
+输出的 chLayout
+输出的 chs
+
+ 创建SwrContext对象，并且自动选择合适的重采样算法，通过 swr_alloc_get_opts(nullptr, 输出通道布局，输出采样格式，输出采样率，输入通道布局，输入采样格式，输入采样率，0，nullptr)
+调用 swr_init(_aSwrCtx)； 初始化SwrContext对象，这里重采样有 线性插值算法优点速度快，但是效果不如Sinc插值算法好；Sinc插值算法速度慢，但是重采样效果好。
+
+初始化SDL，设置freq、format、channels、samples、callback、userdata，然后 SDL_OpenAudio(&spec,nullptr)
+
+==-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-===-=-=--
+视频采样设置不需要，略
+
+==-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-===-=-=--==-===-=-=--
+开启一个 while 循环，知道 播放状态不是暂停就一直进行循环，先判断seek流程(这里略过不重要)
+然后是判断缓存大小，如果达到缓存预设值就 continue 拦截循环，等待
+否则 就调用 av_read_frame(_fmtCtx, &pkt)进行 从多媒体流中获取AVPacket，
+如果成功ret = 0 ，就判断pkt->stream_index 为音频还是视频，进行音视频不通的AVpacket处理流程，如果都不是就av_packet_unref(&pkt)
+如果失败 ret = AVERROR_EOF说明 流读完了，就标记已经读取完毕可以释放 _fmtCtx
+==-=-=--==-= 音频/视频  AVPacket处理流程 -=-=--==-===-=-=--==-===-=-=--==-===-=-=--
+mutex.lock()
+_aPktList.push_back(pkt) 将pkt放到list 中去
+_mutex.signal() 发信号
+_mutex>unlock() 解锁
+-=-=--==-===-=-=音频 decodeAudio===-=-=--==-===-=-=--
+是在 SDL的 sdlAudioCallback 中调用处理的；
+加锁，判断aList是否为空、解锁，读取首个 AVPacket，计算AVPacket时间a_time，判断当前seekTime如果大于a_time则丢弃该AVPacket
+否则就将AVPacket 通过 avcodec_send_packet(_aDecodeCtx, &pkt) 发送到 DecodeCtx中，进行解码，此时会av_packet_unref(&pkt)
+然后通过  avcodec_receive_frame(_aDecodecCtx, _aSwrInFrame)获取解码后的AVFrame 数据
+通过swr_convert 将解码后的 AVFrame 进行重采样，计算出 最新的AVFrame 数据的大小，
+SDL_mixAudio(stream, )
+
+-=-=--==-===-=-=视频 decodeVideo ===-=是在主 流程中调用的=--==-===-=-=--
+两层循环
+
+外 while(true) 循环
+mutex.lock，判断list是否为空， mutex.unlock
+APacket &pkt = _aPktList.front()
+计算时间  _aTime = av_q2d(_aStream->time_base) * pkt.pts;
+avcodec_send_packet(_aDecodecCtx, &pkt) 将AVPacket发送到解码器
+av_packet_unref(&pkt)
+
+内 while(true) 循环
+ret = avcodec_receive_frame(_aDecodecCtx, _aSwrInFrame);
+将 解码获取到的 _aSwrInFrame 进行 内存申请，准备进行图像绘制。
+计算视频的重采样
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+总结： 一共调用了一下几个API
+
+avformat_open_int 获取媒体流 上下文
+avformat_find_stream_info 获取媒体流中的信息
+av_find_best_stream 找到最合适的stream
+avcodec_find_decoder 找到最合适的decoder
+avcodec_alloc_context3 初始化decoder上下文
+avcodec_parameters_to_context  配置 decoder上下文
+avcodec_open2  打开decoder解码器
+swr_alloc_get_opts  设置重采样的算法配置与 申请 swr内存
+swr_init  初始化 swr
+av_read_frame  从fmtCtx中读取对应的 AVPacket
+av_packet_unref   释放AVPacket
+avcodec_send_packet  将 读取到的AVPAcket 发送到解码器
+avcodec_receive_frame  从解码器中取出AVPacekt ，获取到 Frame 进行处理
+av_frame_unref

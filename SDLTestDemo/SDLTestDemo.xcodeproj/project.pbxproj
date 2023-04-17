@@ -41,6 +41,7 @@
 		D120270A29E70DC900886141 /* sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = D120270929E70DC900886141 /* sound.wav */; };
 		D1B154A729EA97B5006A5D9D /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B154A629EA97B5006A5D9D /* CoreFoundation.framework */; };
 		D1B154B729EACC73006A5D9D /* OpenGLView20.m in Sources */ = {isa = PBXBuildFile; fileRef = D1B154B529EACC72006A5D9D /* OpenGLView20.m */; };
+		D1C195AD29EC93CE00EE978D /* explain in Resources */ = {isa = PBXBuildFile; fileRef = D1C195AC29EC93CD00EE978D /* explain */; };
 		D1EE6EAD29E86F1900B6A6C5 /* VideoPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */; };
 		D1EE6EB029E871BD00B6A6C5 /* Condmutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */; };
 		D1EE6EB229E8776500B6A6C5 /* MyHeartWillGoOn.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D1EE6EB129E8776500B6A6C5 /* MyHeartWillGoOn.mp4 */; };
@@ -293,6 +294,7 @@
 		D1B154B329EACBED006A5D9D /* PlayerC_interface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayerC_interface.h; sourceTree = "<group>"; };
 		D1B154B529EACC72006A5D9D /* OpenGLView20.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLView20.m; sourceTree = "<group>"; };
 		D1B154B629EACC72006A5D9D /* OpenGLView20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLView20.h; sourceTree = "<group>"; };
+		D1C195AC29EC93CD00EE978D /* explain */ = {isa = PBXFileReference; lastKnownFileType = text; path = explain; sourceTree = "<group>"; };
 		D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoPlayer.cpp; sourceTree = "<group>"; };
 		D1EE6EAC29E86F1900B6A6C5 /* VideoPlayer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VideoPlayer.hpp; sourceTree = "<group>"; };
 		D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Condmutex.cpp; sourceTree = "<group>"; };
@@ -725,12 +727,13 @@
 		D1EE6EAA29E86F0500B6A6C5 /* VideoPlayer */ = {
 			isa = PBXGroup;
 			children = (
-				D1EE6EB129E8776500B6A6C5 /* MyHeartWillGoOn.mp4 */,
-				D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */,
-				D1EE6EAC29E86F1900B6A6C5 /* VideoPlayer.hpp */,
-				D1B154B329EACBED006A5D9D /* PlayerC_interface.h */,
 				D1EE6EAE29E871BD00B6A6C5 /* Condmutex.cpp */,
 				D1EE6EAF29E871BD00B6A6C5 /* Condmutex.hpp */,
+				D1EE6EB129E8776500B6A6C5 /* MyHeartWillGoOn.mp4 */,
+				D1B154B329EACBED006A5D9D /* PlayerC_interface.h */,
+				D1EE6EAB29E86F1900B6A6C5 /* VideoPlayer.cpp */,
+				D1EE6EAC29E86F1900B6A6C5 /* VideoPlayer.hpp */,
+				D1C195AC29EC93CD00EE978D /* explain */,
 			);
 			path = VideoPlayer;
 			sourceTree = "<group>";
@@ -792,6 +795,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1C195AD29EC93CE00EE978D /* explain in Resources */,
 				D12023FC29E6EB6700886141 /* LaunchScreen.storyboard in Resources */,
 				D1EE6EB229E8776500B6A6C5 /* MyHeartWillGoOn.mp4 in Resources */,
 				D12023F929E6EB6700886141 /* Assets.xcassets in Resources */,

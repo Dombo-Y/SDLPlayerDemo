@@ -7,6 +7,7 @@
 
 #include "VideoPlayer.hpp"
 #include <thread>
+#include <unistd.h>
 
 #include "PlayerC_interface.h"
 
@@ -469,7 +470,6 @@ int VideoPlayer::decodeAudio(){
  
     int ret = avcodec_send_packet(_aDecodeCtx, &pkt);
     av_packet_unref(&pkt);
-//    av_packet_free(pkt);
     _aPktList.pop_front();
     _aMutex.unlock();
     RET(avcodec_send_packet);
@@ -565,12 +565,15 @@ void VideoPlayer::decodeVideo() {
  
         av_packet_unref(&pkt);
         CONTINUE(avcodec_send_packet);
+        int loopIndex = 0;
         while (true) {
             ret = avcodec_receive_frame(_vDecodeCtx,_vSwsInFrame);
             if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
                 break;//结束本次循环，重新从_vPktList取出包进行解码
             }else BREAK(avcodec_receive_frame);
-
+            loopIndex ++;
+//            cout<< "loopIndex =============== " << loopIndex << endl;
+            
             //一定要在解码成功后，再进行下面的判断,防止seek时，到达的是p帧，但前面的I帧已经被释放了，无法参考，这一帧的解码就会出现撕裂现象
             //发现视频的时间是早于seekTime的，就丢弃，防止到seekTime的位置闪现
             if(_vSeekTime >= 0){
