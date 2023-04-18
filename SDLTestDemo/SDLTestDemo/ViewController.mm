@@ -45,9 +45,9 @@ UIGestureRecognizerDelegate
     __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^{    //传入文件路径
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        _player->setSelf((__bridge void *)strongSelf);
-        _player->setFilename(filename);
-        _player->play();
+        self->_player->setSelf((__bridge void *)strongSelf);
+        self->_player->setFilename(filename);
+        self->_player->play();
     });
     
     //渲染View
@@ -229,6 +229,7 @@ UIGestureRecognizerDelegate
     _myview.frame = CGRectMake(dx, dy, dw, dh);
     _menuView.frame = CGRectMake(0, CGRectGetMaxY(_myview.frame), _menuView.frame.size.width, _menuView.frame.size.height);
 }
+
 - (void)actionVolumnTapGesture:(UITapGestureRecognizer *)sender{
     CGPoint touchPoint = [sender locationInView:_volumnSlider];
     CGFloat value = (_volumnSlider.maximumValue - _volumnSlider.minimumValue) * (touchPoint.x / _volumnSlider.frame.size.width );
@@ -236,6 +237,7 @@ UIGestureRecognizerDelegate
     self.volumnLabel.text = [NSString stringWithFormat:@"%ld",lround(value)];
     _player->setVolumn(value);
 }
+
 - (void)actionTapGesture:(UITapGestureRecognizer *)sender {
     CGPoint touchPoint = [sender locationInView:_timeSlider];
     CGFloat value = (_timeSlider.maximumValue - _timeSlider.minimumValue) * (touchPoint.x / _timeSlider.frame.size.width );
@@ -243,6 +245,7 @@ UIGestureRecognizerDelegate
     NSLog(@"当前滑块点按所处的位置:%lf",value);
     _player->setTime(lround(value));
 }
+
 -(void)_sliderTouchUp:(UISlider *)slider{
     //时间滑动条
     if (slider.tag == 100) {
@@ -373,7 +376,6 @@ void stateChanged(void *hhObjectInstance){
 }
 #pragma mark - OPENGL进行渲染 传入AVFrame帧中的数据 宽 高
 -(void)showES:(void *)data width:(uint32_t) w height:(uint32_t) h{
-    // w 1610 \ 和918
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         [self adapterScreenWidth:w Height:h];

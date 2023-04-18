@@ -585,33 +585,33 @@ void VideoPlayer::decodeVideo() {
                 }
             }
             
-//            char *buf = (char *)malloc(_vSwsInFrame->width * _vSwsInFrame->height * 3 / 2);
-//            AVPicture *pict;
-//            int w, h;
-//            char *y, *u, *v;
-//            pict = (AVPicture *)_vSwsInFrame;//这里的frame就是解码出来的AVFrame
-//            w = _vSwsInFrame->width;
-//            h = _vSwsInFrame->height;
-//            y = buf;
-//            u = y + w * h;
-//            v = u + w * h / 4;
-//            for (int i=0; i<h; i++)
-//                memcpy(y + w * i, pict->data[0] + pict->linesize[0] * i, w);
-//            for (int i=0; i<h/2; i++)
-//                memcpy(u + w / 2 * i, pict->data[1] + pict->linesize[1] * i, w / 2);
-//            for (int i=0; i<h/2; i++)
-//                memcpy(v + w / 2 * i, pict->data[2] + pict->linesize[2] * i, w / 2);
-//            if(_hasAudio){//有音频
-//                //如果视频包多早解码出来，就要等待对应的音频时钟到达
-//                //有可能点击停止的时候，正在循环里面，停止后sdl free掉了，就不会再从音频list中取出包，_aClock就不会增大，下面while就死循环了，一直出不来，所以加Playing判断
-//                printf("vTime=%lf, aTime=%lf, vTime-aTime=%lf\n", _vTime, _aTime, _vTime - _aTime);
-//                while(_vTime > _aTime && _state == Playing){//音视频同步
-////                    cout<< "音视频当然要同步啦～～～～～～～" << endl;
-//                }
-//            }else{
-//                //TODO 没有音频的情况
-//            }
-//            playerDoDraw(self,buf,_vSwsInFrame->width,_vSwsInFrame->height);
+            char *buf = (char *)malloc(_vSwsInFrame->width * _vSwsInFrame->height * 3 / 2);
+            AVPicture *pict;
+            int w, h;
+            char *y, *u, *v;
+            pict = (AVPicture *)_vSwsInFrame;//这里的frame就是解码出来的AVFrame
+            w = _vSwsInFrame->width;
+            h = _vSwsInFrame->height;
+            y = buf;
+            u = y + w * h;
+            v = u + w * h / 4;
+            for (int i=0; i<h; i++)
+                memcpy(y + w * i, pict->data[0] + pict->linesize[0] * i, w);
+            for (int i=0; i<h/2; i++)
+                memcpy(u + w / 2 * i, pict->data[1] + pict->linesize[1] * i, w / 2);
+            for (int i=0; i<h/2; i++)
+                memcpy(v + w / 2 * i, pict->data[2] + pict->linesize[2] * i, w / 2);
+            if(_hasAudio){//有音频
+                //如果视频包多早解码出来，就要等待对应的音频时钟到达
+                //有可能点击停止的时候，正在循环里面，停止后sdl free掉了，就不会再从音频list中取出包，_aClock就不会增大，下面while就死循环了，一直出不来，所以加Playing判断
+                printf("vTime=%lf, aTime=%lf, vTime-aTime=%lf\n", _vTime, _aTime, _vTime - _aTime);
+                while(_vTime > _aTime && _state == Playing){//音视频同步
+//                    cout<< "音视频当然要同步啦～～～～～～～" << endl;
+                }
+            }else{
+                //TODO 没有音频的情况
+            }
+            playerDoDraw(self,buf,_vSwsInFrame->width,_vSwsInFrame->height);
             //TODO ---- 啥时候释放 若立即释放 会崩溃 原因是渲染并没有那么快，OPENGL还没有渲染完毕，但是这块内存已经被free掉了
             
             //放到OPGLES glview中等待一帧渲染完毕后，再释放，此处不能释放
